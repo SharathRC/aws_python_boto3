@@ -90,6 +90,30 @@ def attach_policy_with_name(username:str, policy_name:str, scope:str='AWS'):
         attach_policy_with_arn(username=username, policy_arn=policy_arn)
     else:
         logger.info("Couldn't add policy to user")
+
+def detach_policy_with_arn(username:str, policy_arn:str, scope:str='AWS'):
+    iam = boto3.client('iam')
+    response = iam.detach_user_policy(
+        UserName=username,
+        PolicyArn=policy_arn,
+    )
+    logger.info("successfully dettached policy")
+    logger.debug(response)
+
+def detach_policy_with_name(username:str, policy_name:str, scope:str='AWS'):    
+    policy_arn = get_policy_arn(
+        policy_name=policy_name,
+        scope=scope,
+    )
+    
+    if policy_arn:
+        detach_policy_with_arn(
+            username=username,
+            policy_arn=policy_arn,
+            scope=scope,
+        )
+    else:
+        logger.info("couldn't dettach policy")
     
     
     
@@ -100,4 +124,5 @@ def attach_policy_with_name(username:str, policy_name:str, scope:str='AWS'):
 # create_full_access_policy()
 # list_all_policies(scope:str='AWS')
 # attach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
+detach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
 

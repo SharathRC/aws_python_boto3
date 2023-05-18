@@ -60,7 +60,7 @@ def get_policy_arn(policy_name:str, scope:str='AWS') -> str:
     iam = boto3.client('iam')
     paginator = iam.get_paginator('list_policies')
     
-    for res in paginator.paginate(Scope='Local'):
+    for res in paginator.paginate(Scope=scope):
         for policy in res['Policies']:
             if policy['PolicyName'] == policy_name:
                 policy_arn = policy['Arn']
@@ -115,14 +115,42 @@ def detach_policy_with_name(username:str, policy_name:str, scope:str='AWS'):
     else:
         logger.info("couldn't dettach policy")
     
+def create_group(group_name:str):
+    try:
+        iam = boto3.client('iam')
+        iam.create_group(GroupName=group_name)
+        logger.info(f'created group: {group_name}')
+    except iam.exceptions.EntityAlreadyExistsException:
+        logger.info('user with same name already exists')
+
+def attach_policy_to_group_with_arn(group_name:str, policy_arn:str):
+    iam = boto3.client('iam')
+    response = iam.attach_group_policy(
+        GroupName=group_name,
+        PolicyArn=policy_arn,
+    )
+    logger.info('added policy to group')
+
+def attach_policy_to_group(group_name:str, policy_name:str, scope:str='AWS'):
+    policy_arn = get_policy_arn(policy_name=policy_name, scope=scope)
     
+    if policy_arn:
+        attach_policy_to_group_with_arn(group_name=group_name, policy_arn=policy_arn)
+        logger.info(f"added policy: {policy_name} to group: {group_name}")
+    else:
+        logger.info("couldn't add policy to group")
     
 
 # create_user(username="boto_gen_user2")
 # list_users()
 # update_user(old_username='boto_gen_user1', new_username='boto_gen_user_changed')
 # create_full_access_policy()
-# list_all_policies(scope:str='AWS')
+# list_all_policies(scope='AWS')
 # attach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
-detach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
-
+# detach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
+create_group(group_name="boto_gen_group1")
+attach_policy_to_group(
+    group_name='boto_gen_group1',
+    policy_name='AmazonS3FullAccess',
+    scope='AWS'
+)

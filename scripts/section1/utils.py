@@ -46,17 +46,17 @@ def create_full_access_policy():
     logger.info("successfully created policy")
     logger.debug(response)
 
-def list_all_policies():
+def list_all_policies(scope:str='AWS'):
     iam = boto3.client('iam')
     paginator = iam.get_paginator('list_policies')
     
-    for res in paginator.paginate(Scope='AWS'): # AWS, Local 
+    for res in paginator.paginate(Scope=scope): # AWS, Local 
         for policy in res['Policies']:
             policy_name = policy['PolicyName']
             arn = policy['Arn']
             logger.debug(f'policy name: {policy_name}, arn: {arn}')
 
-def get_policy_arn(policy_name:str) -> str:
+def get_policy_arn(policy_name:str, scope:str='AWS') -> str:
     iam = boto3.client('iam')
     paginator = iam.get_paginator('list_policies')
     
@@ -70,20 +70,24 @@ def get_policy_arn(policy_name:str) -> str:
     logger.debug("policy not found")
     return None
 
-def attach_policy_with_name(username:str, policy_name:str):
+def attach_policy_with_arn(username:str, policy_arn:str):
+    iam = boto3.client('iam')
+        
+    response = iam.attach_user_policy(
+        UserName=username,
+        PolicyArn=policy_arn,
+    )
+    
+    logger.info("successfully added policy to user")
+    logger.debug(response)
+
+def attach_policy_with_name(username:str, policy_name:str, scope:str='AWS'):
     iam = boto3.client('iam')
     
-    policy_arn = get_policy_arn(policy_name=policy_name)
+    policy_arn = get_policy_arn(policy_name=policy_name, scope=scope)
     
     if policy_arn:
-        response = iam.attach_user_policy(
-            UserName=username,
-            PolicyArn=policy_arn,
-        )
-        
-        logger.info("successfully added policy to user")
-        logger.debug(response)
-    
+        attach_policy_with_arn(username=username, policy_arn=policy_arn)
     else:
         logger.info("Couldn't add policy to user")
     
@@ -94,6 +98,6 @@ def attach_policy_with_name(username:str, policy_name:str):
 # list_users()
 # update_user(old_username='boto_gen_user1', new_username='boto_gen_user_changed')
 # create_full_access_policy()
-# list_all_policies()
-attach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess")
+# list_all_policies(scope:str='AWS')
+# attach_policy_with_name(username="boto_gen_user2", policy_name="pyFullAccess", scope='Local')
 

@@ -117,33 +117,23 @@ def delete_objects(bucket_name:str, keys:list[str]):
 
     logger.info('deleted object/s')
 
+def get_website_config(bucket_name:str()):
+    client = boto3.client('s3')
+    response = client.get_bucket_website(
+        Bucket=bucket_name
+    )
+    logger.info(response)
 
-# create_bucket(bucket_name='shrcbucketudemy2')
-# img_file = open('resources/img.png', 'rb')
-# add_object_to_bucket(
-#     bucket_name='awsbotolessonbucket',
-#     obj=img_file.read(),
-#     key='img',
-# )
-# list_all_buckets()
+def delete_bucket_policy(bucket_name:str()):
+    client = boto3.client('s3')
+    response = client.delete_bucket_policy(
+        Bucket=bucket_name
+    )
+    logger.info(response)
 
-# delete_bucket(bucket_name='awsbotolessonbucket')
-# upload_files(file_name='requirements.txt', bucket_name='shrcbucketudemy')
-# download_file(bucket_name='shrcbucketudemy', file_name='requirements.txt')
-# list_objects_in_bucket(bucket_name='shrcbucketudemy')
-# find_objects(bucket_name='shrcbucketudemy', prefix='req')
-# get_object_summary(bucket_name='shrcbucketudemy', obj='requirements.txt')
-
-# copy_obj(
-#     bucket_name='shrcbucketudemy',
-#     key='requirements.txt',
-#     new_bucket='shrcbucketudemy2',
-#     new_key='requirements.txt',
-# )
-
-# delete_objects(
-#     bucket_name='shrcbucketudemy2',
-#     keys=[
-#         'requirements.txt'
-#     ]
-# )
+def delete_bucket_website(bucket_name:str()):
+    client = boto3.client('s3')
+    response = client.delete_bucket_website(
+        Bucket=bucket_name
+    )
+    logger.info(response)

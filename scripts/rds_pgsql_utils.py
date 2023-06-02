@@ -6,7 +6,7 @@ import mysql.connector as mc
 from pprint import pprint
 
 
-def create_db_instance(host:str, user:str, password:str, db_name:str, port:int=5432):
+def create_db(host:str, user:str, password:str, db_name:str, port:int=5432):
     try:
         conn = psycopg2.connect(
             user=user,

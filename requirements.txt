@@ -2,3 +2,5 @@ boto3
 awscli
 loguru
 mysql-connector-python
+psycopg2
+mariadb

@@ -121,7 +121,7 @@ def get_all_movies(table_name:str, year:int):
 # table = create_movies_table(table_name='movies')
 # pprint(table.table_status)
 
-# with open('moviedata.json') as json_file:
+# with open('resources/moviedata.json') as json_file:
 #     movie_list = json.load(json_file, parse_float=Decimal)
     
 # update_movies_list(table_name='movies', movies=movie_list)

@@ -1,0 +1,9 @@
+
+
+sudo amazon-linux-extras install epel
+sudo yum update
+sudo yum install redis
+redis-cli --version
+
+
+redis-cli -h   -p 6379

@@ -66,9 +66,10 @@ def set_inbound_rules(
     logger.info(response)
 
 def create_ec2_instance(
-    image_id:str, 
     key_name:str, 
-    security_groups:list[str], 
+    security_groups:list[str],
+    user_data_script:str='',
+    image_id:str='ami-0989fb15ce71ba39e', #linux ubuntu 22.04
     instance_type:str='t3.micro', 
     region_name:str='euro-central-1',
 ):
@@ -81,7 +82,8 @@ def create_ec2_instance(
         MaxCount=1,
         InstanceType=instance_type,
         KeyName=key_name,
-        SecurityGroups=security_groups
+        SecurityGroups=security_groups,
+        UserData = user_data_script,
     )
 
     logger.info(response)
@@ -148,13 +150,72 @@ def delete_key_pair(
     response = ec2_client.delete_key_pair(KeyName=key_name)
     logger.info(response)
 
+def create_volume(
+    region_name:str='eu-central-1',
+    availability_zone:str='eu-central-1a',
+    volume_type:str='gp2',
+    tag_key:str='Name',
+    tag_value:str='Python & Boto3 with resource',
+):
+    ec2_client = boto3.resource('ec2', region_name=region_name)
 
+    new_volume = ec2_client.create_volume(
+        AvailabilityZone = availability_zone,
+        Size = 5,
+        VolumeType=volume_type,
+        TagSpecifications = [
+            {
+                'ResourceType':'volume',
+                'Tags':[
+                    {
+                        'Key':tag_key,
+                        'Value':tag_value,
+                    }
+                ]
+            }
+        ]
+    )
 
+    logger.info("Created Volume ID : {} ".format(new_volume.id))
+
+def list_all_volumes():
+    ec2_resource = boto3.resource('ec2')
+
+    for volume in ec2_resource.volumes.all():
+        logger.info(volume)
+
+def search_volume(
+    tag_name:str='Name',
+    tag_value:str='Python & Boto3 with resource',
+):
+    ec2_resource = boto3.resource('ec2')
+
+    for volume in ec2_resource.volumes.filter(
+        Filters = [
+            {
+                'Name':f'tag:{tag_name}',
+                'Values': [
+                    tag_value,
+                ]
+            }
+        ]
+    ):
+        logger.info(f'Volume {volume.id} ({volume.size} Gib) -> {volume.state}')
 
 
 region_name='eu-north-1'
 security_group_id = 'sg-0fb2790a0df054c01'
 instance_id = 'i-01751f71eb80c0ae5'
+
+user_data_script = """
+#!/bin/bash
+yum update -y 
+yum install -y httpd
+chkconfig httpd on
+service httpd start
+echo "<h1>Welcome to Python & Boto3 Course</h1>" > /var/www/html/index.html
+
+"""
 
 # create_key_pair(key_name='udemy_aws_key', region_name=region_name)
 # create_security(
@@ -184,4 +245,7 @@ instance_id = 'i-01751f71eb80c0ae5'
 # list_instances(region_name=region_name)
 # stope_instance(instance_id=instance_id, region_name=region_name)
 # terminate_instance(instance_id=instance_id, region_name=region_name)
-describe_ec2(region_name=region_name)
+# describe_ec2(region_name=region_name)
+# create_volume(region_name='eu-north-1', availability_zone='eu-north-1a', volume_type='gp2')
+# list_all_volumes()
+search_volume()

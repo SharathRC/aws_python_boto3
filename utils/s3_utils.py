@@ -27,13 +27,18 @@ def add_object_to_bucket(bucket_name:str, obj:any, key:str, acl:str='private') -
     
     logger.debug(response)
 
-def list_all_buckets():
+def list_all_buckets() -> list[str]:
+    s3_buckets = []
+    
     resource = boto3.resource('s3')
     buckets = resource.buckets.all()
     
     logger.info('listing all buckets')
     for bucket in buckets:
         logger.info(bucket.name)
+        s3_buckets.append(bucket.name)
+    
+    return s3_buckets
 
 def clean_up(bucket):
     for object in bucket.objects.all():

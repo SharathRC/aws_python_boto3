@@ -1,8 +1,35 @@
 import boto3
 from loguru import logger
 from pprint import pprint
+from boto3.dynamodb.conditions import Key
 
 
+def create_db_table(table_name:str='Users') -> None:
+    dynamodb = boto3.resource('dynamodb')
+
+    # create dynamodb table
+    table = dynamodb.create_table(
+        TableName=table_name,
+        KeySchema=[
+            {
+                'AttributeName': 'id',
+                'KeyType': 'HASH'
+            },
+        ],
+        AttributeDefinitions=[
+            {
+                'AttributeName': 'id',
+                'AttributeType': 'N'
+            },
+        ],
+        ProvisionedThroughput={
+            'ReadCapacityUnits': 1,
+            'WriteCapacityUnits': 1,
+        }
+    )
+
+    logger.info("Table status:", table.table_status)
+    
 def insert_data(table_name:str, item:dict) -> None:
     try:
         db = boto3.resource('dynamodb')
@@ -105,6 +132,43 @@ def scan_table(table_name:str) -> None:
         pprint(data)
     except Exception as e:
         logger.info(e)
+
+def query_table(table_name:str, id:str='id') -> None:
+    dynamodb = boto3.resource('dynamodb')
+
+    table = dynamodb.Table(table_name)
+
+    resp = table.query(
+        KeyConditionExpression=Key(id).eq(1)
+    )
+
+    if 'Items' in resp:
+        logger.info(resp['Items'][0])
+
+def update_item_in_table(table_name:str, key:dict, change_param:str='age', val:any=24) -> None:
+    dynamodb = boto3.resource('dynamodb')
+
+    table = dynamodb.Table(table_name)
+
+    table.update_item(
+        Key=key,
+        UpdateExpression=f"set {change_param} = :g",
+        ExpressionAttributeValues={
+            ':g': val
+        },
+        ReturnValues="UPDATED_NEW"
+    )
+
+def delete_item_in_table(table_name:str, key:dict) -> None:
+    dynamodb = boto3.resource('dynamodb')
+
+    table = dynamodb.Table(table_name)
+
+    response = table.delete_item(
+        Key=key,
+    )
+
+    logger.info(response)
     
 
 

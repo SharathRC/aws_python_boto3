@@ -178,8 +178,8 @@ def create_volume(
 
     logger.info("Created Volume ID : {} ".format(new_volume.id))
 
-def list_all_volumes():
-    ec2_resource = boto3.resource('ec2')
+def list_all_volumes(region_name:str='eu-north-1'):
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
 
     for volume in ec2_resource.volumes.all():
         logger.info(volume)
@@ -187,8 +187,9 @@ def list_all_volumes():
 def search_volume(
     tag_name:str='Name',
     tag_value:str='Python & Boto3 with resource',
+    region_name:str='eu-central-1',
 ):
-    ec2_resource = boto3.resource('ec2')
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
 
     for volume in ec2_resource.volumes.filter(
         Filters = [
@@ -201,6 +202,100 @@ def search_volume(
         ]
     ):
         logger.info(f'Volume {volume.id} ({volume.size} Gib) -> {volume.state}')
+
+def attach_volume(
+    volume_id:str,
+    device:str,
+    instance_id:str,
+    region_name:str='eu-central-1',
+):
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
+
+    volume = ec2_resource.Volume(volume_id)
+    logger.info(f'Volume {volume.id} status -> {volume.state}')
+
+    volume.attach_to_instance(
+        Device = device,
+        InstanceId=instance_id
+    )
+
+    logger.info(f'Volume {volume.id} Status -> {volume.state}')
+
+def delete_volume(
+    volume_id:str,
+    device:str,
+    instance_id:str,
+    region_name:str='eu-central-1',
+):
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
+    ec2_client = boto3.client('ec2', region_name=region_name)
+
+    volume = ec2_resource.Volume(volume_id)
+
+    volume.detach_from_instance(
+        Device = device,
+        InstanceId=instance_id,
+    )
+
+    waiter = ec2_client.get_waiter('volume_available')
+    waiter.wait(
+        VolumeIds=[
+            volume.id
+        ]
+    )
+
+    logger.info(f'Volume {volume.id} Status -> {volume.state}')
+
+def increase_volume_size(
+    volume_id:str,
+    new_size:int=7,
+    region_name:str='eu-central-1',
+):
+    ec2_client = boto3.client('ec2', region_name=region_name)
+
+    response = ec2_client.modify_volume(
+        VolumeId=volume_id,
+        Size=new_size
+    )
+
+    logger.info(response)
+
+def delete_ebs(
+    volume_id:str,
+    region_name:str='eu-north-1'
+):
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
+
+    volume = ec2_resource.Volume(volume_id)
+
+    if volume.state == "available":
+        volume.delete()
+        logger.info("Volume Deleted")
+    else:
+        logger.info("Can not delete volume attached")
+
+def create_snapshot(
+   volume_id:str,
+   tag_key_name:str='Name',
+   tag_key_value:str='Python Snapshot', 
+):
+    ec2_resource = boto3.resource('ec2', region_name=region_name)
+    snapshot = ec2_resource.create_snapshot(
+        VolumeId=volume_id,
+        TagSpecifications = [
+            {
+                'ResourceType':'snapshot',
+                'Tags':[
+                    {
+                        'Key':tag_key_name,
+                        'Value':tag_key_value
+                    }
+                ]
+            }
+        ]
+    )
+
+    logger.info('Snapshot is created')
 
 
 region_name='eu-north-1'
@@ -247,5 +342,6 @@ echo "<h1>Welcome to Python & Boto3 Course</h1>" > /var/www/html/index.html
 # terminate_instance(instance_id=instance_id, region_name=region_name)
 # describe_ec2(region_name=region_name)
 # create_volume(region_name='eu-north-1', availability_zone='eu-north-1a', volume_type='gp2')
-# list_all_volumes()
-search_volume()
+list_all_volumes()
+# search_volume()
+# delete_ebs(volume_id='vol-0a7105029677b368e')

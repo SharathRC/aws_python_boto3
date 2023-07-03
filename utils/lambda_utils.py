@@ -89,7 +89,7 @@ def lambda_handler(event, context):
         },
 
     ]
-    insert_batch_data(table_name=table_name, data=batch_items)
+    insert_batch_data(table_name=table_name, batch_items=batch_items)
     
     # get data from dynDB
     keys_list = [

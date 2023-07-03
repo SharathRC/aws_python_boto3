@@ -133,13 +133,13 @@ def scan_table(table_name:str) -> None:
     except Exception as e:
         logger.info(e)
 
-def query_table(table_name:str, id:str='id') -> None:
+def query_table(table_name:str, id:str='id', id_val:any=1) -> None:
     dynamodb = boto3.resource('dynamodb')
 
     table = dynamodb.Table(table_name)
 
     resp = table.query(
-        KeyConditionExpression=Key(id).eq(1)
+        KeyConditionExpression=Key(id).eq(id_val)
     )
 
     if 'Items' in resp:

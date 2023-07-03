@@ -158,3 +158,6 @@ def delete_lambda(lambda_function_name:str='helloWorldLambda'):
     )
 
     logger.info(response)
+
+
+# create_lambda_role()

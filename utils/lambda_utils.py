@@ -161,3 +161,7 @@ def delete_lambda(lambda_function_name:str='helloWorldLambda'):
 
 
 # create_lambda_role()
+# create_lambda_function(lambda_function_zip='resources/lambda.zip')
+# invoke_lambda(lambda_function_name='helloWorldLambda')
+# describe_lambda_function(lambda_function_name='helloWorldLambda')
+# delete_lambda(lambda_function_name='helloWorldLambda')
